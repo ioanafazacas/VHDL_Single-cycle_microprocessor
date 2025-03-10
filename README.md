@@ -1,6 +1,8 @@
-Program de test pentru procesorul MIPS
+# Program de test pentru procesorul MIPS
 
-Cerință: Să se determine valoarea pară maximă dintr-un șir de N numere stocate în memorie începând cu adresa A (A≥12). A și N se citesc de la adresele 0, respectiv 4. Rezultatul se va scrie în memorie la adresa 8.
+# Cerință:
+Să se determine valoarea pară maximă dintr-un șir de N numere stocate în memorie începând cu adresa A (A≥12). A și N se citesc de la adresele 0, respectiv 4. Rezultatul se va scrie în memorie la adresa 8.
+
 Cod in C
 Int N;
 int A[N] = {12, 6, 7, 20, 25, 10, 18, 55, 40,…}; 
@@ -11,13 +13,14 @@ for( int i = 0; i < N; i++ )
 		max=A[i];
 }
  
-Componente functionale :
+## Componente functionale :
 
 MIPS-ul a fost testat pe plăcuță și toate elementele sale sunt funcționale, iar programul afișează rezultatul corespunzător. 
-      1.	Unitatea IFetch:
+##      1.	Unitatea IFetch:
 Primeste pe intrările de date adresele de salt și pune  pe ieșiri, adresa imediat următoare (PC+4) și conținutul instrucțiunii curente. 
 In memoria ROM component a Unității IFetch avem stocate instructiunile programului in ordinea  lor secventiala de executie:
-0    add $1,$0,$0  	# folosim r1 drept  contor pentru bucla (i=0 contorul buclei)
+
+0    add $1,$0,$0  	# folosim r1 drept  contor pentru bucla (i=0 contorul buclei)|
 1    lw $3, 4($0)	 	# in r3 stocam valoare N(care se afla la adresa 4 in memorie) aceasta reprezinta
                     lungimea sirului, numarul de iteratii ale buclei
 2    add $2,$0,$		# in r2 stocam valoarea 0 (am vrut sa folosesc r2 pentru incrementarea adresei 
@@ -52,30 +55,30 @@ In memoria ROM component a Unității IFetch avem stocate instructiunile program
 18   j 5 		      	# sarim la inceputul buclei 
 19   sw $5,8($0)  	# stocam in memorie la adresa 8 valoarea para maxima din sir (max)
 
-    2.	Unitatea de decodificare a instrucțiunilor ID
+##    2.Unitatea de decodificare a instrucțiunilor ID
 Unitatea ID primește pe intrările de date intrucțiunea curentă și valoarea WD, care se scrie în RF, ambele pe 32 de biți. ID pune la dispoziție pe ieșiri, operanzii RD1, RD2 și imediatul extins Ext_Imm, tot pe 32 de biți. Pe ieșire mai apar câmpurile function (6 biți) și sa (5 biți) din instrucțiune. Semnalul de control RegDst selectează registrul în care se scrie valoarea WD atunci când semnalul de control RegWrite este activ. Scrierea este sincronă pe frontul ascendant. RF este port mapat in interiorul unitatii ID si meoria ROM componenta este initializata cu 0 la inceputul implementarii.
-    3.	Unitatea de control UC
+##    3.	Unitatea de control UC
 M-am folosit de tabelul pentru Semnale de control MIPS32 pentru setarea semnalelor de control in functie de instructia curenta care se efectueaza.
-    4.	Unitatea de execuție EX
+##    4.	Unitatea de execuție EX
 Unitatea EX primește pe intrările de date registrele RD1 și RD2 de la blocul de registre, imediatul extins Ext_imm și adresa de instrucțiune imediat următoare PC+4, codificate pe 32 de biți. Suplimentar, apar câmpurile func și sa din instrucțiunea curentă, pe 6 biți, respectiv 5 biți. EX pune la dispoziție rezultatul ALU cu semnalul de validare Zero (care indică un rezultat nul)și un semnal de validare Gtz(care indica daca rezultatul este mai mare decat zero) și adresa de salt condiționat Branch Address, calculată astfel: Branch Address <= (PC+4) + (Ext_imm << 2).
 Primul operand în ALU este RD1, iar cel de-al doilea este ales între RD1 și Ext_imm cu ajutorul semnalului de control ALUSrc. Codul operației ALUOp generat de unitatea de control UC este convertit la codul ALUCtrl, care determină operația de efectuat în ALU.
-    5.	Unitatea de memorie MEM
+##    5.	Unitatea de memorie MEM
 Conține memoria RAM care stocheaza datele pe 32 de biti. Scrierea în memorie este sincronă pe frontul de ceas ascendent și citirea este asincronă. Am adaugat un semnal rez care sa primeasca rezultatul programului care va fi memorat la adresa 8. Rezultatul va fi afisat in test_env pe SSD .
 Adresa de scriere sau citire a datelor este data de bitii ALUResin(5 downto 0).
-    6.	Unitatea de scriere a rezultatului WB
+##    6.	Unitatea de scriere a rezultatului WB
 Constă din multiplexorul cu selecția MemtoReg care va decide daca se foloseste rezultatul primit de la ALU sau datele citite din memorie.
 
 
-Componente nefunctionale :
+## Componente nefunctionale :
 Toate componentele MIPS-ului sunt funcționale 
 
-Probleme intâmpinate pe parcurs :
+## Probleme intâmpinate pe parcurs :
 Am intampinat problem la instructiunilor add , and ,addi atunci cand  foloseam același registru drept registrul destimnatie cât și ca registru sursa (Pentru incrementare lui r1.  ex: addi $1, $1, 1). Când implementam instrucțiunile în felul acesta începea să se adune la infinit numerele din registru. Am rezolvat problema prin folosirea unui alt registru drept registru destinatie și împărțirea instrucțiunii în doua instructiuni. (Pentru a realiza incrementarea registrului cu valoarea dorita.  ex: addi $1, $1, 1 => addi $9, $1, 1 ; add $1, $9, $0 ).
 Am mai întâmpinat probleme la scrierea si citirea datelor din memorie . Din cauza modului în care am gândit algoritmul și instrucțiunile,  adresa de la care se citea sau scria in Unitatea MEM trebuie să primească ALUResin(5 downto 0), nu ALUResin(7 downto 2). Acesta a fost singurul mod prin care am reușit să rezolv problema și MIPS-ul să funcționeze correct.
 
 
  
-Instrucțiuni suplimentare alese :
+## Instrucțiuni suplimentare alese :
 
 BGTZ – Branch on Greater Than Zero 
 Descriere	Salt condiționat dacă un registru este mai mare ca 0.
